@@ -59,7 +59,11 @@
     <!-- Table wrapped in Alpine.js for Modals -->
     <div x-data="{ 
         open: false, 
-        selectedLog: { path: '', request: '', response: '', status: '' } 
+        selectedLog: { path: '', request: '', response: '', status: '' },
+        selectLog(path, req, res, status) {
+            this.selectedLog = { path, request: req, response: res, status };
+            this.open = true;
+        }
     }">
         <div class="card overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-100">
@@ -87,27 +91,20 @@
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     @foreach ($logs as $log)
-                        <tr class="hover:bg-gray-100 transition-colors cursor-pointer" @click="
-                                        selectedLog = { 
-                                            path: '/{{ $log->path }}', 
-                                            request: {!! json_encode($log->request_body) !!}, 
-                                            response: {!! json_encode($log->response_body) !!},
-                                            status: '{{ $log->status_code }}'
-                                        };
-                                        open = true;
-                                    ">
+                        <tr class="hover:bg-gray-100 transition-colors cursor-pointer"
+                            @click="selectLog('/{{ $log->path }}', @js($log->request_body), @js($log->response_body), '{{ $log->status_code }}')">
                             <td class="px-6 py-3">
                                 <span
                                     class="px-2 py-0.5 rounded text-xs font-bold font-mono
-                                                {{ $log->method === 'GET' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700' }}">
+                                                    {{ $log->method === 'GET' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700' }}">
                                     {{ $log->method }}
                                 </span>
                             </td>
                             <td class="px-6 py-3 font-mono text-xs text-gray-700">/{{ $log->path }}</td>
                             <td class="px-6 py-3">
-                                <span
-                                    class="px-2 py-0.5 rounded text-xs font-semibold font-mono
-                                                {{ $log->status_code === 200 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' }}">
+                                <span class="px-2 py-0.5 rounded text-xs font-semibold font-mono
+                                                    {{ $log->status_code === 200 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' }}
+                                                    {{ $log->status_code === 402 ? 'bg-orange-50 text-orange-700' : '' }}">
                                     {{ $log->status_code }}
                                 </span>
                             </td>
