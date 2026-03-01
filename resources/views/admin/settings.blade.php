@@ -43,7 +43,8 @@
                                     <div class="text-sm font-semibold text-gray-900">{{ $meta['desc'] }}</div>
                                     <div
                                         class="text-[11px] text-gray-400 font-mono mt-1 group-hover:text-gray-500 transition-colors">
-                                        {{ $setting->key }}</div>
+                                        {{ $setting->key }}
+                                    </div>
                                 </div>
                                 <div class="relative shrink-0">
                                     <input type="checkbox" name="{{ $setting->key }}" value="1" class="sr-only peer" {{ $setting->value == '1' ? 'checked' : '' }}>
@@ -52,6 +53,24 @@
                                     </div>
                                 </div>
                             </label>
+                        @elseif($meta['type'] == 'select')
+                            <label
+                                class="text-xs font-medium uppercase tracking-wider text-gray-500">{{ $meta['desc'] }}</label>
+                            <div class="relative group">
+                                <select name="{{ $setting->key }}"
+                                    class="w-full bg-white border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none appearance-none transition-all shadow-sm">
+                                    @foreach($meta['options'] as $val => $label)
+                                        <option value="{{ $val }}" {{ $setting->value == $val ? 'selected' : '' }}>{{ $label }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2 group-focus-within:text-blue-600 transition-colors pointer-events-none"
+                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
+                                    </path>
+                                </svg>
+                            </div>
+                            <div class="text-[11px] text-gray-400 font-mono pl-1 mt-0.5">{{ $setting->key }}</div>
                         @elseif($meta['type'] == 'password')
                             <label
                                 class="text-xs font-medium uppercase tracking-wider text-gray-500">{{ $meta['desc'] }}</label>

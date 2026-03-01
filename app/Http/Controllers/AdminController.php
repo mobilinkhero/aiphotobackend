@@ -21,9 +21,11 @@ class AdminController extends Controller
         'app_store_url' => ['type' => 'text', 'desc' => 'App/Play Store URL', 'group' => 'system'],
         'initial_free_coins' => ['type' => 'number', 'desc' => 'Initial free coins for new users', 'group' => 'system'],
 
-        'ai_api_key' => ['type' => 'password', 'desc' => 'API Key (Replicate/Fal)', 'group' => 'ai'],
-        'ai_provider' => ['type' => 'text', 'desc' => 'Active AI Provider (e.g. replicate)', 'group' => 'ai'],
-        'ai_max_concurrent' => ['type' => 'text', 'desc' => 'Max Concurrent Generations', 'group' => 'ai'],
+        'ai_provider' => ['type' => 'select', 'desc' => 'Active AI Provider', 'group' => 'ai', 'options' => ['replicate' => 'Replicate (Classic)', 'openai' => 'OpenAI (DALL-E / GPT)', 'gemini' => 'Google Gemini (Flash)']],
+        'replicate_api_key' => ['type' => 'password', 'desc' => 'Replicate API Key', 'group' => 'ai'],
+        'openai_api_key' => ['type' => 'password', 'desc' => 'OpenAI API Key', 'group' => 'ai'],
+        'gemini_api_key' => ['type' => 'password', 'desc' => 'Gemini API Key', 'group' => 'ai'],
+        'openai_model' => ['type' => 'text', 'desc' => 'OpenAI Model (e.g. dall-e-3)', 'group' => 'ai'],
 
         // Feature Toggles (App UI)
         'feature_enhance_enabled' => ['type' => 'boolean', 'desc' => 'Enable Photo Enhance', 'group' => 'features'],
