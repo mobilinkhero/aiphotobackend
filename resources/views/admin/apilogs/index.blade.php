@@ -60,22 +60,23 @@
         document.addEventListener('alpine:init', () => {
             Alpine.store('logModal', {
                 open: false,
+                allLogs: @js($logs->map(fn($l) => [
+                    'path' => '/'. $l->path,
+                    'request' => $l->request_body,
+                    'response' => $l->response_body,
+                    'status' => $l->status_code,
+                    'method' => $l->method
+                ])),
                 selectedLog: { path: '', request: '', response: '', status: '' },
 
-                // Helper to safely format JSON or return raw text
                 formatData(data) {
                     if (!data) return 'No Data';
                     try {
-                        // If it's already an object, just stringify it
                         if (typeof data === 'object') return JSON.stringify(data, null, 4);
-                        // If it's a string, try parsing it first
                         return JSON.stringify(JSON.parse(data), null, 4);
-                    } catch (e) {
-                        return data; // Return raw text if not JSON
-                    }
+                    } catch (e) { return data; }
                 },
 
-                // Helper specifically for internal logs inside request
                 getInternalLogs() {
                     let req = this.selectedLog.request;
                     if (!req) return null;
@@ -85,9 +86,8 @@
                     } catch (e) { return null; }
                 },
 
-                show(path, req, res, status) {
-                    console.log('Opening Log:', path); // Debug log
-                    this.selectedLog = { path, request: req, response: res, status };
+                show(index) {
+                    this.selectedLog = this.allLogs[index];
                     this.open = true;
                 }
             })
@@ -95,37 +95,25 @@
     </script>
 
     <div class="card overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-100">
+        <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
             <h3 class="font-semibold text-gray-900 text-sm">Recent API Requests</h3>
+            <span class="text-[10px] text-gray-400 font-mono italic">Click any row to inspect</span>
         </div>
         <table class="w-full text-sm">
             <thead>
                 <tr class="bg-gray-50 border-b border-gray-100">
-                    <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        Method
-                    </th>
-                    <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        Endpoint</th>
-                    <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        Status
-                    </th>
-                    <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        Duration</th>
-                    <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">IP
-                    </th>
-                    <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        Time
-                    </th>
+                    <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Method</th>
+                    <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Endpoint</th>
+                    <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Action</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
-                @foreach ($logs as $log)
-                    <tr class="hover:bg-gray-100 transition-colors cursor-pointer"
-                        @click="$store.logModal.show('/{{ $log->path }}', @js($log->request_body), @js($log->response_body), '{{ $log->status_code }}')">
+                @foreach ($logs as $index => $log)
+                    <tr class="hover:bg-gray-100 transition-colors cursor-pointer group" 
+                        @click="$store.logModal.show({{ $index }})">
                         <td class="px-6 py-3">
-                            <span
-                                class="px-2 py-0.5 rounded text-xs font-bold font-mono
-                                                            {{ $log->method === 'GET' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700' }}">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-gray-50 border border-gray-200">
                                 {{ $log->method }}
                             </span>
                         </td>
@@ -134,27 +122,24 @@
                             @php
                                 $statusLabel = match ((int) $log->status_code) {
                                     200 => 'SUCCESS',
-                                    402 => 'AI OUT OF CREDITS',
-                                    422 => 'INPUT ERROR',
-                                    500 => 'SERVER CRASH',
-                                    503 => 'CONFIG MISSING',
-                                    default => 'UNKNOWN (' . $log->status_code . ')'
+                                    402 => 'OUT OF CREDITS',
+                                    default => 'H' . $log->status_code
                                 };
                                 $statusClass = match ((int) $log->status_code) {
                                     200 => 'bg-green-100 text-green-700 border-green-200',
                                     402 => 'bg-orange-100 text-orange-700 border-orange-200',
-                                    422 => 'bg-amber-100 text-amber-700 border-amber-200',
-                                    500, 503 => 'bg-red-100 text-red-700 border-red-200',
-                                    default => 'bg-gray-100 text-gray-700 border-gray-200'
+                                    default => 'bg-red-100 text-red-700 border-red-200'
                                 };
                             @endphp
                             <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border {{ $statusClass }}">
                                 {{ $statusLabel }}
                             </span>
                         </td>
-                        <td class="px-6 py-3 text-gray-600 font-mono text-xs">{{ round($log->duration * 1000) }}ms</td>
-                        <td class="px-6 py-3 text-gray-400 font-mono text-xs">{{ $log->ip }}</td>
-                        <td class="px-6 py-3 text-gray-400 text-xs">{{ $log->created_at->diffForHumans() }}</td>
+                        <td class="px-6 py-3 text-right">
+                            <button class="bg-blue-600 text-white text-[10px] font-bold px-3 py-1 rounded shadow-sm hover:bg-blue-700 transition-colors uppercase tracking-wider">
+                                View Log
+                            </button>
+                        </td>
                     </tr>
                 @endforeach
             </tbody>
