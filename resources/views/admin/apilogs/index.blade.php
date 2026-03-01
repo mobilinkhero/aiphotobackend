@@ -83,21 +83,21 @@
                         <td class="px-6 py-3">
                             <span
                                 class="px-2 py-0.5 rounded text-xs font-bold font-mono
-                                    {{ $log['method'] === 'GET' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700' }}">
-                                {{ $log['method'] }}
+                                        {{ $log->method === 'GET' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700' }}">
+                                {{ $log->method }}
                             </span>
                         </td>
-                        <td class="px-6 py-3 font-mono text-xs text-gray-700">{{ $log['endpoint'] }}</td>
+                        <td class="px-6 py-3 font-mono text-xs text-gray-700">/{{ $log->path }}</td>
                         <td class="px-6 py-3">
                             <span
                                 class="px-2 py-0.5 rounded text-xs font-semibold font-mono
-                                    {{ $log['status'] === 200 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' }}">
-                                {{ $log['status'] }}
+                                        {{ $log->status_code === 200 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' }}">
+                                {{ $log->status_code }}
                             </span>
                         </td>
-                        <td class="px-6 py-3 text-gray-600 font-mono text-xs">{{ $log['duration_ms'] }}ms</td>
-                        <td class="px-6 py-3 text-gray-400 font-mono text-xs">{{ $log['ip'] }}</td>
-                        <td class="px-6 py-3 text-gray-400 text-xs">{{ $log['created_at']->diffForHumans() }}</td>
+                        <td class="px-6 py-3 text-gray-600 font-mono text-xs">{{ round($log->duration * 1000) }}ms</td>
+                        <td class="px-6 py-3 text-gray-400 font-mono text-xs">{{ $log->ip }}</td>
+                        <td class="px-6 py-3 text-gray-400 text-xs">{{ $log->created_at->diffForHumans() }}</td>
                     </tr>
                 @endforeach
             </tbody>
