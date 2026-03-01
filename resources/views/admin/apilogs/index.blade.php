@@ -100,16 +100,31 @@
                         <td class="px-6 py-3">
                             <span
                                 class="px-2 py-0.5 rounded text-xs font-bold font-mono
-                                                    {{ $log->method === 'GET' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700' }}">
+                                                        {{ $log->method === 'GET' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700' }}">
                                 {{ $log->method }}
                             </span>
                         </td>
                         <td class="px-6 py-3 font-mono text-xs text-gray-700">/{{ $log->path }}</td>
                         <td class="px-6 py-3">
-                            <span class="px-2 py-0.5 rounded text-xs font-semibold font-mono
-                                                    {{ $log->status_code === 200 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' }}
-                                                    {{ $log->status_code === 402 ? 'bg-orange-50 text-orange-700' : '' }}">
-                                {{ $log->status_code }}
+                            @php
+                                $statusLabel = match ((int) $log->status_code) {
+                                    200 => 'SUCCESS',
+                                    402 => 'AI OUT OF CREDITS',
+                                    422 => 'INPUT ERROR',
+                                    500 => 'SERVER CRASH',
+                                    503 => 'CONFIG MISSING',
+                                    default => 'UNKNOWN (' . $log->status_code . ')'
+                                };
+                                $statusClass = match ((int) $log->status_code) {
+                                    200 => 'bg-green-100 text-green-700 border-green-200',
+                                    402 => 'bg-orange-100 text-orange-700 border-orange-200',
+                                    422 => 'bg-amber-100 text-amber-700 border-amber-200',
+                                    500, 503 => 'bg-red-100 text-red-700 border-red-200',
+                                    default => 'bg-gray-100 text-gray-700 border-gray-200'
+                                };
+                            @endphp
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border {{ $statusClass }}">
+                                {{ $statusLabel }}
                             </span>
                         </td>
                         <td class="px-6 py-3 text-gray-600 font-mono text-xs">{{ round($log->duration * 1000) }}ms</td>
@@ -124,50 +139,74 @@
     @push('modals')
         <!-- Details Modal (Teleported to root to fix sidebar layout mix) -->
         <div x-data x-show="$store.logModal.open"
-             class="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-             x-cloak
-             @keydown.escape.window="$store.logModal.open = false">
+            class="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" x-cloak
+            @keydown.escape.window="$store.logModal.open = false">
 
             <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-gray-200"
-                 @click.away="$store.logModal.open = false">
+                @click.away="$store.logModal.open = false">
 
                 <div class="px-6 py-4 border-b flex justify-between items-center bg-gray-50/80 backdrop-blur">
                     <div>
                         <h2 class="text-lg font-bold text-gray-900" x-text="$store.logModal.selectedLog.path"></h2>
-                        <span class="text-xs font-mono text-gray-500" x-text="'Response Status: ' + $store.logModal.selectedLog.status"></span>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-xs font-mono px-2 py-0.5 rounded bg-gray-100 text-gray-600 border border-gray-200" x-text="'HTTP ' + $store.logModal.selectedLog.status"></span>
+                            <span class="text-xs font-bold px-2 py-0.5 rounded" 
+                                  :class="{
+                                      'bg-green-100 text-green-700': $store.logModal.selectedLog.status == 200,
+                                      'bg-orange-100 text-orange-700': $store.logModal.selectedLog.status == 402,
+                                      'bg-amber-100 text-amber-700': $store.logModal.selectedLog.status == 422,
+                                      'bg-red-100 text-red-700': $store.logModal.selectedLog.status >= 500
+                                  }"
+                                  x-text="{
+                                      '200': 'ALL SYSTEMS OK',
+                                      '402': 'AI BALANCE REQUIRED',
+                                      '422': 'BAD IMAGE/REQUEST',
+                                      '500': 'SERVER INTERNAL ERROR',
+                                      '503': 'SYSTEM CONFIG ERROR'
+                                  }[$store.logModal.selectedLog.status] || 'UNEXPECTED ERROR'"></span>
+                        </div>
                     </div>
-                    <button @click="$store.logModal.open = false" class="text-gray-400 hover:text-gray-900 transition-colors p-2">&times;</button>
+                    <button @click="$store.logModal.open = false"
+                        class="text-gray-400 hover:text-gray-900 transition-colors p-2">&times;</button>
                 </div>
 
                 <div class="p-6 overflow-y-auto space-y-6">
                     <div>
-                        <h3 class="text-sm font-semibold text-gray-900 mb-2 uppercase tracking-wider flex items-center gap-2">
+                        <h3
+                            class="text-sm font-semibold text-gray-900 mb-2 uppercase tracking-wider flex items-center gap-2">
                             <span class="w-2 h-2 rounded-full bg-blue-500"></span>
                             App Request Payload (App → Server)
                         </h3>
-                        <pre class="bg-gray-900 text-green-400 p-4 rounded-lg text-xs font-mono overflow-x-auto" x-text="$store.logModal.selectedLog.request ? JSON.stringify(JSON.parse($store.logModal.selectedLog.request), null, 4) : 'No Data'"></pre>
+                        <pre class="bg-gray-900 text-green-400 p-4 rounded-lg text-xs font-mono overflow-x-auto"
+                            x-text="$store.logModal.selectedLog.request ? JSON.stringify(JSON.parse($store.logModal.selectedLog.request), null, 4) : 'No Data'"></pre>
                     </div>
 
-                    <div x-show="$store.logModal.selectedLog.request && JSON.parse($store.logModal.selectedLog.request)._internal_ai_logs">
-                        <h3 class="text-sm font-semibold text-gray-900 mb-2 uppercase tracking-wider flex items-center gap-2">
+                    <div
+                        x-show="$store.logModal.selectedLog.request && JSON.parse($store.logModal.selectedLog.request)._internal_ai_logs">
+                        <h3
+                            class="text-sm font-semibold text-gray-900 mb-2 uppercase tracking-wider flex items-center gap-2">
                             <span class="w-2 h-2 rounded-full bg-orange-500 border border-white"></span>
                             Internal AI Workflow (Server ↔ Replicate)
                         </h3>
                         <pre class="bg-[#1e1e2e] text-orange-200 p-4 rounded-lg text-xs font-mono overflow-x-auto border border-orange-500/20"
-                             x-text="$store.logModal.selectedLog.request ? JSON.stringify(JSON.parse($store.logModal.selectedLog.request)._internal_ai_logs, null, 4) : 'No Data'"></pre>
+                            x-text="$store.logModal.selectedLog.request ? JSON.stringify(JSON.parse($store.logModal.selectedLog.request)._internal_ai_logs, null, 4) : 'No Data'"></pre>
                     </div>
 
                     <div>
-                        <h3 class="text-sm font-semibold text-gray-900 mb-2 uppercase tracking-wider flex items-center gap-2">
+                        <h3
+                            class="text-sm font-semibold text-gray-900 mb-2 uppercase tracking-wider flex items-center gap-2">
                             <span class="w-2 h-2 rounded-full bg-green-500"></span>
                             Server Response Payload (Server → App)
                         </h3>
-                        <pre class="bg-gray-900 text-blue-300 p-4 rounded-lg text-xs font-mono overflow-x-auto" x-text="$store.logModal.selectedLog.response ? ($store.logModal.selectedLog.response.startsWith('{') ? JSON.stringify(JSON.parse($store.logModal.selectedLog.response), null, 4) : $store.logModal.selectedLog.response) : 'No Data'"></pre>
+                        <pre class="bg-gray-900 text-blue-300 p-4 rounded-lg text-xs font-mono overflow-x-auto"
+                            x-text="$store.logModal.selectedLog.response ? ($store.logModal.selectedLog.response.startsWith('{') ? JSON.stringify(JSON.parse($store.logModal.selectedLog.response), null, 4) : $store.logModal.selectedLog.response) : 'No Data'"></pre>
                     </div>
                 </div>
 
                 <div class="px-6 py-3 border-t bg-gray-50 text-right">
-                    <button @click="$store.logModal.open = false" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150">Close Inspector</button>
+                    <button @click="$store.logModal.open = false"
+                        class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150">Close
+                        Inspector</button>
                 </div>
             </div>
         </div>
