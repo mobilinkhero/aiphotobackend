@@ -79,9 +79,11 @@ class AiEnhanceController extends Controller
      */
     protected function executeProcessing(Request $request, string $tool)
     {
-        $request->validate([
-            'image' => 'required|file|max:10240',
-        ]);
+        // Avoid Laravel's strict native 'image' or 'file' checking
+        // as the server is missing the php ext-fileinfo extension.
+        if (!$request->hasFile('image')) {
+            return response()->json(['success' => false, 'error' => 'No image uploaded. (Missing image field)'], 422);
+        }
 
         $apiKey = AppSetting::where('key', 'ai_api_key')->value('value');
         if (empty($apiKey)) {
