@@ -141,10 +141,13 @@ class AiEnhanceController extends Controller
                 return response()->json(['success' => false, 'error' => 'Processing timeout.'], 500);
             }
 
-            // 3. Save locally
-            Storage::disk('public')->makeDirectory('enhanced');
+            // 3. Save locally (Using native PHP functions to completely avoid Flysystem's finfo extension dependency)
+            $storageDir = storage_path('app/public/enhanced');
+            if (!file_exists($storageDir)) {
+                mkdir($storageDir, 0755, true);
+            }
             $filename = 'enhanced/' . $tool . '_' . uniqid() . '.png';
-            Storage::disk('public')->put($filename, file_get_contents($resultUrl));
+            file_put_contents(storage_path('app/public/' . $filename), file_get_contents($resultUrl));
 
             return response()->json([
                 'success' => true,
