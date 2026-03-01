@@ -160,7 +160,7 @@ Route::middleware(['app.secret'])->group(function () {
     //  Wrapped in Rate Limiting (Throttle) to prevent abuse:
     //  e.g., maximum 3 requests per day (1440 minutes) per IP for free users
     // ─────────────────────────────────────────────────────────────────────
-    Route::middleware(['throttle:3,1440'])->group(function () {
+    Route::middleware(['throttle:1000,1'])->group(function () {
         Route::post('/enhance', [AiEnhanceController::class, 'processEnhance']);
         Route::post('/colorize', [AiEnhanceController::class, 'processColorize']);
         Route::post('/restore', [AiEnhanceController::class, 'processRestore']);
