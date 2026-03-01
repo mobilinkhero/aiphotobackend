@@ -28,16 +28,22 @@ Route::middleware(['app.secret'])->group(function () {
             // Feature flags
             'feature_enhance_enabled',
             'feature_enhance_premium',
+            'feature_enhance_coins',
             'feature_restore_enabled',
             'feature_restore_premium',
+            'feature_restore_coins',
             'feature_face_enabled',
             'feature_face_premium',
+            'feature_face_coins',
             'feature_upscale_enabled',
             'feature_upscale_premium',
+            'feature_upscale_coins',
             'feature_colorize_enabled',
             'feature_colorize_premium',
+            'feature_colorize_coins',
             'feature_background_enabled',
             'feature_background_premium',
+            'feature_background_coins',
         ])->get()->pluck('value', 'key');
 
         $featuresData = [
@@ -49,6 +55,7 @@ Route::middleware(['app.secret'])->group(function () {
                 'color' => '0xFF448AFF', // blueAccent
                 'enabled' => $settings->get('feature_enhance_enabled', '1') == '1',
                 'isPremium' => $settings->get('feature_enhance_premium', '0') == '1',
+                'coins' => (int) $settings->get('feature_enhance_coins', '1'),
                 'benefits' => [],
                 'beforeUrl' => 'assets/images/demos/enhance_before.jpg',
                 'afterUrl' => 'assets/images/demos/enhance_after.jpg',
@@ -61,6 +68,7 @@ Route::middleware(['app.secret'])->group(function () {
                 'color' => '0xFFFFAB40', // orangeAccent
                 'enabled' => $settings->get('feature_restore_enabled', '1') == '1',
                 'isPremium' => $settings->get('feature_restore_premium', '1') == '1',
+                'coins' => (int) $settings->get('feature_restore_coins', '1'),
                 'benefits' => [
                     'Remove deep scratches & folds',
                     'Restore faded facial features',
@@ -78,6 +86,7 @@ Route::middleware(['app.secret'])->group(function () {
                 'color' => '0xFFFF4081', // pinkAccent
                 'enabled' => $settings->get('feature_face_enabled', '1') == '1',
                 'isPremium' => $settings->get('feature_face_premium', '0') == '1',
+                'coins' => (int) $settings->get('feature_face_coins', '1'),
                 'benefits' => [],
                 'beforeUrl' => 'assets/images/demos/face_before.jpg',
                 'afterUrl' => 'assets/images/demos/face_after.jpg',
@@ -90,6 +99,7 @@ Route::middleware(['app.secret'])->group(function () {
                 'color' => '0xFF69F0AE', // greenAccent
                 'enabled' => $settings->get('feature_upscale_enabled', '1') == '1',
                 'isPremium' => $settings->get('feature_upscale_premium', '1') == '1',
+                'coins' => (int) $settings->get('feature_upscale_coins', '1'),
                 'benefits' => [
                     '4X Detail enhancement',
                     'Crystal clear 4K output',
@@ -107,6 +117,7 @@ Route::middleware(['app.secret'])->group(function () {
                 'color' => '0xFF7C4DFF', // deepPurpleAccent
                 'enabled' => $settings->get('feature_colorize_enabled', '1') == '1',
                 'isPremium' => $settings->get('feature_colorize_premium', '0') == '1',
+                'coins' => (int) $settings->get('feature_colorize_coins', '1'),
                 'benefits' => [],
                 'beforeUrl' => 'assets/images/demos/colorize_before.jpg',
                 'afterUrl' => 'assets/images/demos/colorize_after.jpg',
@@ -119,6 +130,7 @@ Route::middleware(['app.secret'])->group(function () {
                 'color' => '0xFF18FFFF', // cyanAccent
                 'enabled' => $settings->get('feature_background_enabled', '1') == '1',
                 'isPremium' => $settings->get('feature_background_premium', '1') == '1',
+                'coins' => (int) $settings->get('feature_background_coins', '1'),
                 'benefits' => [
                     'Smart object-aware removal',
                     'Natural portrait bokeh',

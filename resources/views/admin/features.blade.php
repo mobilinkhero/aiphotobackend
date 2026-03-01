@@ -73,6 +73,27 @@
                                 </div>
                             </label>
                         </div>
+
+                        <!-- Coins Value -->
+                        <div class="flex items-center justify-between pt-5 border-t border-gray-100">
+                            <div>
+                                <label for="{{ $id }}_coins"
+                                    class="text-sm font-semibold text-gray-700 flex items-center gap-1.5 cursor-pointer">
+                                    <svg class="w-4 h-4 text-orange-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd"
+                                            d="M10 2a8 8 0 100 16 8 8 0 000-16zM8 7a1 1 0 112 0v1h1a1 1 0 010 2H9v1a1 1 0 11-2 0v-1H6a1 1 0 110-2h1V7z"
+                                            clip-rule="evenodd"></path>
+                                    </svg>
+                                    Coin Cost
+                                </label>
+                                <p class="text-[11px] text-gray-400 mt-1">When not PRO</p>
+                            </div>
+                            <div>
+                                <input type="number" id="{{ $id }}_coins" name="feature_{{ $id }}_coins"
+                                    value="{{ $settings["feature_{$id}_coins"] ?? '1' }}" min="0" step="1"
+                                    class="w-16 h-8 text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 font-mono text-center pb-1">
+                            </div>
+                        </div>
                     </div>
                 </div>
             @endforeach

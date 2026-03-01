@@ -27,16 +27,22 @@ class AdminController extends Controller
         // Feature Toggles (App UI)
         'feature_enhance_enabled' => ['type' => 'boolean', 'desc' => 'Enable Photo Enhance', 'group' => 'features'],
         'feature_enhance_premium' => ['type' => 'boolean', 'desc' => 'Make Photo Enhance Premium', 'group' => 'features'],
+        'feature_enhance_coins' => ['type' => 'number', 'desc' => 'Coins required when free', 'group' => 'features'],
         'feature_restore_enabled' => ['type' => 'boolean', 'desc' => 'Enable Restore Old Photo', 'group' => 'features'],
         'feature_restore_premium' => ['type' => 'boolean', 'desc' => 'Make Restore Premium', 'group' => 'features'],
+        'feature_restore_coins' => ['type' => 'number', 'desc' => 'Coins required when free', 'group' => 'features'],
         'feature_face_enabled' => ['type' => 'boolean', 'desc' => 'Enable Face Enhance', 'group' => 'features'],
         'feature_face_premium' => ['type' => 'boolean', 'desc' => 'Make Face Enhance Premium', 'group' => 'features'],
+        'feature_face_coins' => ['type' => 'number', 'desc' => 'Coins required when free', 'group' => 'features'],
         'feature_upscale_enabled' => ['type' => 'boolean', 'desc' => 'Enable Upscale to HD', 'group' => 'features'],
         'feature_upscale_premium' => ['type' => 'boolean', 'desc' => 'Make Upscale Premium', 'group' => 'features'],
+        'feature_upscale_coins' => ['type' => 'number', 'desc' => 'Coins required when free', 'group' => 'features'],
         'feature_colorize_enabled' => ['type' => 'boolean', 'desc' => 'Enable Colorize Photo', 'group' => 'features'],
         'feature_colorize_premium' => ['type' => 'boolean', 'desc' => 'Make Colorize Premium', 'group' => 'features'],
+        'feature_colorize_coins' => ['type' => 'number', 'desc' => 'Coins required when free', 'group' => 'features'],
         'feature_background_enabled' => ['type' => 'boolean', 'desc' => 'Enable Background Fix', 'group' => 'features'],
         'feature_background_premium' => ['type' => 'boolean', 'desc' => 'Make Background Fix Premium', 'group' => 'features'],
+        'feature_background_coins' => ['type' => 'number', 'desc' => 'Coins required when free', 'group' => 'features'],
     ];
 
     private function syncDefaults()
@@ -44,7 +50,7 @@ class AdminController extends Controller
         foreach ($this->defaultSettings as $key => $meta) {
             AppSetting::firstOrCreate(
                 ['key' => $key],
-                ['value' => ($meta['type'] == 'boolean') ? '0' : '', 'description' => $meta['desc']]
+                ['value' => ($meta['type'] == 'boolean') ? '0' : (($meta['type'] == 'number') ? '1' : ''), 'description' => $meta['desc']]
             );
         }
     }
