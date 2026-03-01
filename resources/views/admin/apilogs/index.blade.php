@@ -88,18 +88,18 @@
                 <tbody class="divide-y divide-gray-100">
                     @foreach ($logs as $log)
                         <tr class="hover:bg-gray-100 transition-colors cursor-pointer" @click="
-                                    selectedLog = { 
-                                        path: '/{{ $log->path }}', 
-                                        request: {!! json_encode($log->request_body) !!}, 
-                                        response: {!! json_encode($log->response_body) !!},
-                                        status: '{{ $log->status_code }}'
-                                    };
-                                    open = true;
-                                ">
+                                        selectedLog = { 
+                                            path: '/{{ $log->path }}', 
+                                            request: {!! json_encode($log->request_body) !!}, 
+                                            response: {!! json_encode($log->response_body) !!},
+                                            status: '{{ $log->status_code }}'
+                                        };
+                                        open = true;
+                                    ">
                             <td class="px-6 py-3">
                                 <span
                                     class="px-2 py-0.5 rounded text-xs font-bold font-mono
-                                            {{ $log->method === 'GET' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700' }}">
+                                                {{ $log->method === 'GET' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700' }}">
                                     {{ $log->method }}
                                 </span>
                             </td>
@@ -107,7 +107,7 @@
                             <td class="px-6 py-3">
                                 <span
                                     class="px-2 py-0.5 rounded text-xs font-semibold font-mono
-                                            {{ $log->status_code === 200 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' }}">
+                                                {{ $log->status_code === 200 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' }}">
                                     {{ $log->status_code }}
                                 </span>
                             </td>
@@ -145,6 +145,16 @@
                         </h3>
                         <pre class="bg-gray-900 text-green-400 p-4 rounded-lg text-xs font-mono overflow-x-auto"
                             x-text="selectedLog.request ? JSON.stringify(JSON.parse(selectedLog.request), null, 4) : 'No Data'"></pre>
+                    </div>
+
+                    <div x-show="selectedLog.request && JSON.parse(selectedLog.request)._internal_ai_logs">
+                        <h3
+                            class="text-sm font-semibold text-gray-900 mb-2 uppercase tracking-wider flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-orange-500 border border-white"></span>
+                            Internal AI Workflow (Server ↔ Replicate)
+                        </h3>
+                        <pre class="bg-[#1e1e2e] text-orange-200 p-4 rounded-lg text-xs font-mono overflow-x-auto border border-orange-500/20"
+                            x-text="selectedLog.request ? JSON.stringify(JSON.parse(selectedLog.request)._internal_ai_logs, null, 4) : 'No Data'"></pre>
                     </div>
 
                     <div>

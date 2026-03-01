@@ -102,12 +102,23 @@ class AiEnhanceController extends Controller
 
             // 1. Send to Replicate
             $input = array_merge([$config['input_key'] => $dataUri], $config['extra']);
+
+            // Log what we send to AI for debugging
+            $internalLogs = [
+                'ai_provider' => 'Replicate',
+                'ai_model_version' => $config['version'],
+                'ai_sent_payload' => array_merge($input, [$config['input_key'] => '[IMAGE_DATA_BLOB]']), // Hide blob in logs
+            ];
+
             $resp = Http::withToken($apiKey)->withoutVerifying()->timeout(30)->post("https://api.replicate.com/v1/predictions", [
                 'version' => $config['version'],
                 'input' => $input,
             ]);
 
+            $internalLogs['ai_initial_response'] = $resp->json();
+
             if (!$resp->successful()) {
+                $request->merge(['_internal_ai_logs' => $internalLogs]);
                 return response()->json(['success' => false, 'error' => "Replicate Start Error: " . $resp->body()], $resp->status());
             }
 
@@ -121,6 +132,8 @@ class AiEnhanceController extends Controller
                 $pollResp = Http::withToken($apiKey)->withoutVerifying()->get($pollUrl);
 
                 if (!$pollResp->successful()) {
+                    $internalLogs['ai_polling_error'] = $pollResp->body();
+                    $request->merge(['_internal_ai_logs' => $internalLogs]);
                     return response()->json(['success' => false, 'error' => 'Lost connection during polling.'], 500);
                 }
 
@@ -129,13 +142,18 @@ class AiEnhanceController extends Controller
                 if ($status === 'succeeded') {
                     $output = $pollResp->json('output');
                     $resultUrl = is_array($output) ? end($output) : $output;
+                    $internalLogs['ai_final_result_url'] = $resultUrl;
                     break;
                 }
 
                 if (in_array($status, ['failed', 'canceled'])) {
+                    $internalLogs['ai_failure_data'] = $pollResp->json();
+                    $request->merge(['_internal_ai_logs' => $internalLogs]);
                     return response()->json(['success' => false, 'error' => 'AI processing failed on server.'], 500);
                 }
             }
+
+            $request->merge(['_internal_ai_logs' => $internalLogs]);
 
             if (!$resultUrl) {
                 return response()->json(['success' => false, 'error' => 'Processing timeout.'], 500);
