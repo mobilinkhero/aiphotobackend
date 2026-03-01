@@ -6,7 +6,7 @@ use App\Models\AppSetting;
 use App\Http\Controllers\AiEnhanceController;
 
 // Apply App Secret authentication to all API endpoints
-Route::middleware(['app.secret'])->group(function () {
+Route::middleware(['app.secret', 'api.logger'])->group(function () {
 
     // ─────────────────────────────────────────────────────────────────────
     //  GET /api/config
