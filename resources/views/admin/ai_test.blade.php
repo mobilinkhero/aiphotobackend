@@ -15,7 +15,11 @@
 
     <div class="space-y-8 mt-4 pb-12">
         {{-- Status / Alerts --}}
-        @if(empty($apiKey))
+        @php
+            $currentLabel = (isset($providers) && isset($provider) && isset($providers[$provider])) ? $providers[$provider] : ($provider ?? 'Unknown');
+        @endphp
+
+        @if(empty($apiKey) || $apiKey == '')
             <div class="bg-amber-50 border border-amber-100 p-4 rounded-xl flex items-start gap-4 shadow-sm animate-pulse">
                 <div class="p-2 bg-amber-100 rounded-lg text-amber-600">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -24,12 +28,27 @@
                     </svg>
                 </div>
                 <div>
-                    <h4 class="text-sm font-bold text-amber-900 leading-tight">AI Provider Needs Configuration</h4>
-                    <p class="text-xs text-amber-700 mt-0.5">Please add your Replicate API key in settings to unlock these
-                        features.</p>
+                    <h4 class="text-sm font-bold text-amber-900 leading-tight">{{ $currentLabel }} Needs Key</h4>
+                    <p class="text-xs text-amber-700 mt-0.5">Please add your {{ $currentLabel }} API key in settings to
+                        unlock these features.</p>
                     <a href="{{ route('admin.settings.ai') }}"
                         class="inline-flex items-center text-xs font-bold text-amber-600 hover:text-amber-700 mt-2 uppercase tracking-wider">Configure
-                        Now →</a>
+                        Settings →</a>
+                </div>
+            </div>
+        @else
+            <div class="bg-green-50 border border-green-100 p-4 rounded-xl flex items-center justify-between shadow-sm">
+                <div class="flex items-center gap-4">
+                    <div class="p-2 bg-green-100 rounded-lg text-green-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-green-900 leading-tight">Provider Ready: {{ $currentLabel }}</h4>
+                        <p class="text-[10px] text-green-700 mt-0.5 uppercase tracking-tighter">Current backend testing mode
+                            is active</p>
+                    </div>
                 </div>
             </div>
         @endif
@@ -43,7 +62,9 @@
                 </div>
                 <div>
                     <h4 class="text-sm font-bold text-rose-900 leading-tight">AI Error Encountered</h4>
-                    <p class="text-xs text-rose-700 mt-0.5">{{ $error }}</p>
+                    <p class="text-[11px] text-rose-700 mt-1 font-mono bg-white/50 p-2 rounded border border-rose-200">
+                        {{ $error }}
+                    </p>
                 </div>
             </div>
         @endif
@@ -52,31 +73,40 @@
         <div class="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
 
             {{-- Control Panel --}}
-            <div class="xl:col-span-5 space-y-6">
+            <div class="xl:col-span-4 space-y-6">
                 <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
                     <div class="p-6">
                         <form method="POST" action="{{ route('admin.ai.test.run') }}" enctype="multipart/form-data"
-                            id="testForm" class="space-y-8">
+                            id="testForm" class="space-y-6">
                             @csrf
+
+                            {{-- Provider Select --}}
+                            <div class="space-y-3">
+                                <label
+                                    class="text-xs font-bold uppercase tracking-widest text-indigo-600">Provider</label>
+                                <select name="provider"
+                                    class="w-full pl-4 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 transition-all cursor-pointer">
+                                    @foreach($providers as $val => $label)
+                                        <option value="{{ $val }}" {{ $provider == $val ? 'selected' : '' }}>{{ $label }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
 
                             {{-- Step 1: Upload --}}
                             <div class="space-y-3">
-                                <div class="flex items-center justify-between">
-                                    <label class="text-xs font-bold uppercase tracking-widest text-indigo-600">01.
-                                        Upload Source</label>
-                                    <span class="text-[10px] text-gray-400 font-mono">MAX 10MB</span>
-                                </div>
+                                <label class="text-xs font-bold uppercase tracking-widest text-indigo-600">01. Upload
+                                    Image</label>
                                 <div id="dropzone" class="relative group">
                                     <div
-                                        class="border-2 border-dashed border-gray-100 hover:border-indigo-200 rounded-2xl h-56 flex flex-col items-center justify-center cursor-pointer transition-all bg-gray-50/50 relative overflow-hidden">
+                                        class="border-2 border-dashed border-gray-100 hover:border-indigo-200 rounded-2xl h-48 flex flex-col items-center justify-center cursor-pointer transition-all bg-gray-50/50 relative overflow-hidden">
                                         <img id="previewImg" src=""
                                             class="hidden absolute inset-0 w-full h-full object-cover rounded-2xl z-10">
-
                                         <div id="dropPlaceholder"
-                                            class="flex flex-col items-center gap-3 text-center px-6">
+                                            class="flex flex-col items-center gap-2 text-center px-4">
                                             <div
-                                                class="p-4 bg-white rounded-2xl shadow-sm group-hover:scale-110 transition-transform duration-300">
-                                                <svg class="w-8 h-8 text-indigo-500" fill="none" stroke="currentColor"
+                                                class="p-3 bg-white rounded-xl shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                                <svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         stroke-width="1.5"
@@ -84,13 +114,8 @@
                                                     </path>
                                                 </svg>
                                             </div>
-                                            <div>
-                                                <p class="text-sm font-bold text-gray-900 tracking-tight">Drop your
-                                                    photo here</p>
-                                                <p class="text-xs text-gray-500 mt-1">or click to browse local files</p>
-                                            </div>
+                                            <p class="text-xs font-bold text-gray-900 tracking-tight">Select Photo</p>
                                         </div>
-
                                         <input type="file" name="image" id="imageInput" accept="image/*"
                                             class="absolute inset-0 opacity-0 cursor-pointer z-20">
                                     </div>
@@ -98,43 +123,25 @@
                             </div>
 
                             {{-- Step 2: Select Engine --}}
-                            <div class="space-y-4">
+                            <div class="space-y-3">
                                 <label for="toolSelect"
-                                    class="text-xs font-bold uppercase tracking-widest text-indigo-600">02. Choose AI
+                                    class="text-xs font-bold uppercase tracking-widest text-indigo-600">02. Choose
                                     Engine</label>
-                                <div class="relative">
-                                    <select name="tool" id="toolSelect"
-                                        class="w-full pl-4 pr-10 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl text-sm font-bold text-gray-900 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 transition-all appearance-none cursor-pointer">
-                                        @foreach($tools as $tool)
-                                            <option value="{{ $tool }}" {{ $loop->first ? 'selected' : '' }}>
-                                                {{ strtoupper($tool) }} Enhancement
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <div
-                                        class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-400">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M19 9l-7 7-7-7"></path>
-                                        </svg>
-                                    </div>
-                                </div>
+                                <select name="tool" id="toolSelect"
+                                    class="w-full pl-4 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:border-indigo-600 transition-all cursor-pointer">
+                                    @foreach($tools as $t)
+                                        <option value="{{ $t }}" {{ $t == 'enhance' ? 'selected' : '' }}>{{ strtoupper($t) }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             </div>
 
                             {{-- Actions --}}
-                            <div class="pt-4">
+                            <div class="pt-2">
                                 <button type="submit" id="submitBtn"
-                                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white p-4 rounded-xl font-bold text-sm shadow-lg shadow-indigo-100 transition-all flex items-center justify-center gap-3 transform active:scale-[0.98]">
-                                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                    </svg>
-                                    <span id="btnText">RUN {{ strtoupper($tools[0] ?? 'AI') }} ENHANCEMENT</span>
+                                    class="w-full bg-gray-900 text-white p-4 rounded-xl font-bold text-xs tracking-widest shadow-lg hover:bg-black transition-all flex items-center justify-center gap-3 transform active:scale-[0.98]">
+                                    LAUNCH AI LAB TEST
                                 </button>
-                                <p
-                                    class="text-[10px] text-gray-400 text-center mt-4 uppercase font-bold tracking-widest">
-                                    Processing takes approx. 10s - 30s</p>
                             </div>
                         </form>
                     </div>
@@ -142,7 +149,7 @@
             </div>
 
             {{-- Viewer Panel --}}
-            <div class="xl:col-span-7 h-full">
+            <div class="xl:col-span-8">
                 <div
                     class="bg-gray-900 rounded-[2rem] p-4 shadow-2xl relative min-h-[500px] flex flex-col group overflow-hidden border border-gray-800">
                     {{-- UI Decorations --}}
@@ -220,7 +227,7 @@
         const btnText = document.getElementById('btnText');
 
         if (toolSelect && btnText) {
-            toolSelect.addEventListener('change', function() {
+            toolSelect.addEventListener('change', function () {
                 btnText.innerText = `RUN ${this.value.toUpperCase()} ENHANCEMENT`;
             });
         }

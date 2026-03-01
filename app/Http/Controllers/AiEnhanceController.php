@@ -83,7 +83,7 @@ class AiEnhanceController extends Controller
             return response()->json(['success' => false, 'error' => 'No image uploaded.'], 422);
         }
 
-        $provider = AppSetting::where('key', 'ai_provider')->value('value') ?: 'replicate';
+        $provider = config('app.temp_ai_provider') ?: AppSetting::getVal('ai_provider', 'replicate');
 
         return match ($provider) {
             'replicate' => $this->executeReplicate($request, $tool),
@@ -95,9 +95,12 @@ class AiEnhanceController extends Controller
 
     protected function executeReplicate(Request $request, string $tool)
     {
-        $apiKey = AppSetting::where('key', 'replicate_api_key')->value('value') ?: AppSetting::where('key', 'ai_api_key')->value('value');
+        $newKey = AppSetting::getVal('replicate_api_key');
+        $oldKey = AppSetting::getVal('ai_api_key');
+        $apiKey = trim($newKey ?: $oldKey ?: '');
+
         if (empty($apiKey)) {
-            return response()->json(['success' => false, 'error' => 'Replicate API key missing.'], 503);
+            return response()->json(['success' => false, 'error' => 'Replicate API key missing. (Check AI Settings)'], 503);
         }
 
         $config = $this->models[$tool] ?? $this->models['enhance'];
@@ -165,11 +168,11 @@ class AiEnhanceController extends Controller
 
     protected function executeOpenAI(Request $request, string $tool)
     {
-        $apiKey = AppSetting::where('key', 'openai_api_key')->value('value');
-        $model = AppSetting::where('key', 'openai_model')->value('value') ?: 'dall-e-3';
+        $apiKey = trim(AppSetting::getVal('openai_api_key') ?: '');
+        $model = AppSetting::getVal('openai_model') ?: 'dall-e-3';
 
         if (empty($apiKey)) {
-            return response()->json(['success' => false, 'error' => 'OpenAI API key missing.'], 503);
+            return response()->json(['success' => false, 'error' => 'OpenAI API key missing in settings.'], 503);
         }
 
         try {
@@ -198,9 +201,9 @@ class AiEnhanceController extends Controller
 
     protected function executeGemini(Request $request, string $tool)
     {
-        $apiKey = AppSetting::where('key', 'gemini_api_key')->value('value');
+        $apiKey = trim(AppSetting::getVal('gemini_api_key') ?: '');
         if (empty($apiKey)) {
-            return response()->json(['success' => false, 'error' => 'Gemini API key missing.'], 503);
+            return response()->json(['success' => false, 'error' => 'Gemini API key missing in settings.'], 503);
         }
 
         // Gemini 1.5 Flash - Very cheap, good for background removal or descriptive tasks
@@ -231,20 +234,46 @@ class AiEnhanceController extends Controller
 
     public function testPage()
     {
-        $apiKey = AppSetting::where('key', 'ai_api_key')->value('value');
+        $provider = AppSetting::getVal('ai_provider', 'replicate');
+        $apiKey = match ($provider) {
+            'replicate' => AppSetting::getVal('replicate_api_key') ?: AppSetting::getVal('ai_api_key'),
+            'openai' => AppSetting::getVal('openai_api_key'),
+            'gemini' => AppSetting::getVal('gemini_api_key'),
+            default => AppSetting::getVal('ai_api_key'),
+        };
+
         $tools = array_keys($this->models);
-        return view('admin.ai_test', compact('apiKey', 'tools'));
+        $providers = [
+            'replicate' => 'Replicate AI',
+            'openai' => 'OpenAI (DALL-E)',
+            'gemini' => 'Google Gemini'
+        ];
+
+        return view('admin.ai_test', compact('apiKey', 'tools', 'provider', 'providers'));
     }
 
     public function testRun(Request $request)
     {
         $tool = $request->input('tool', 'enhance');
+        $providerOverride = $request->input('provider');
+
+        // If they chose a specific provider in the test lab, use it temporarily
+        if ($providerOverride) {
+            config(['app.temp_ai_provider' => $providerOverride]);
+        }
+
         $result = $this->executeProcessing($request, $tool);
         $data = json_decode($result->getContent(), true);
 
         return view('admin.ai_test', [
-            'apiKey' => AppSetting::where('key', 'ai_api_key')->value('value'),
+            'apiKey' => 'PROCESSED', // Just to show something is set
             'tools' => array_keys($this->models),
+            'providers' => [
+                'replicate' => 'Replicate AI',
+                'openai' => 'OpenAI (DALL-E)',
+                'gemini' => 'Google Gemini'
+            ],
+            'provider' => $providerOverride ?: AppSetting::getVal('ai_provider', 'replicate'),
             'resultUrl' => $data['success'] ? ($data['result_url'] ?? null) : null,
             'error' => $data['error'] ?? null
         ]);
