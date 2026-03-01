@@ -80,7 +80,7 @@ class AiEnhanceController extends Controller
     protected function executeProcessing(Request $request, string $tool)
     {
         $request->validate([
-            'image' => 'required|image|max:10240',
+            'image' => 'required|file|max:10240',
         ]);
 
         $apiKey = AppSetting::where('key', 'ai_api_key')->value('value');
@@ -92,7 +92,12 @@ class AiEnhanceController extends Controller
 
         try {
             $file = $request->file('image');
-            $mimeType = $file->getMimeType() ?: 'image/jpeg';
+
+            // Bypass strict mime-type check that depends on ext-fileinfo
+            $mimeType = $file->getClientMimeType() ?: 'image/jpeg';
+            if (!str_starts_with($mimeType, 'image/')) {
+                return response()->json(['success' => false, 'error' => 'The uploaded file must be an image.'], 422);
+            }
             $base64 = base64_encode(file_get_contents($file->getRealPath()));
             $dataUri = "data:{$mimeType};base64,{$base64}";
 
