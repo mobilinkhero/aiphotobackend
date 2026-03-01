@@ -97,9 +97,6 @@ class AiEnhanceController extends Controller
 
             // Bypass strict mime-type check that depends on ext-fileinfo
             $mimeType = $file->getClientMimeType() ?: 'image/jpeg';
-            if (!str_starts_with($mimeType, 'image/')) {
-                return response()->json(['success' => false, 'error' => 'The uploaded file must be an image.'], 422);
-            }
             $base64 = base64_encode(file_get_contents($file->getRealPath()));
             $dataUri = "data:{$mimeType};base64,{$base64}";
 
