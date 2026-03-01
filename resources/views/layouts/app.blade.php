@@ -206,6 +206,8 @@
             </div>
         </div>
     </main>
+
+    @stack('modals')
 </body>
 
 </html>
