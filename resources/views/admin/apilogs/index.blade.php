@@ -61,7 +61,32 @@
             Alpine.store('logModal', {
                 open: false,
                 selectedLog: { path: '', request: '', response: '', status: '' },
+
+                // Helper to safely format JSON or return raw text
+                formatData(data) {
+                    if (!data) return 'No Data';
+                    try {
+                        // If it's already an object, just stringify it
+                        if (typeof data === 'object') return JSON.stringify(data, null, 4);
+                        // If it's a string, try parsing it first
+                        return JSON.stringify(JSON.parse(data), null, 4);
+                    } catch (e) {
+                        return data; // Return raw text if not JSON
+                    }
+                },
+
+                // Helper specifically for internal logs inside request
+                getInternalLogs() {
+                    let req = this.selectedLog.request;
+                    if (!req) return null;
+                    try {
+                        let parsed = (typeof req === 'string') ? JSON.parse(req) : req;
+                        return parsed._internal_ai_logs || null;
+                    } catch (e) { return null; }
+                },
+
                 show(path, req, res, status) {
+                    console.log('Opening Log:', path); // Debug log
                     this.selectedLog = { path, request: req, response: res, status };
                     this.open = true;
                 }
@@ -100,7 +125,7 @@
                         <td class="px-6 py-3">
                             <span
                                 class="px-2 py-0.5 rounded text-xs font-bold font-mono
-                                                        {{ $log->method === 'GET' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700' }}">
+                                                            {{ $log->method === 'GET' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700' }}">
                                 {{ $log->method }}
                             </span>
                         </td>
@@ -149,21 +174,21 @@
                     <div>
                         <h2 class="text-lg font-bold text-gray-900" x-text="$store.logModal.selectedLog.path"></h2>
                         <div class="flex items-center gap-2 mt-1">
-                            <span class="text-xs font-mono px-2 py-0.5 rounded bg-gray-100 text-gray-600 border border-gray-200" x-text="'HTTP ' + $store.logModal.selectedLog.status"></span>
-                            <span class="text-xs font-bold px-2 py-0.5 rounded" 
-                                  :class="{
-                                      'bg-green-100 text-green-700': $store.logModal.selectedLog.status == 200,
-                                      'bg-orange-100 text-orange-700': $store.logModal.selectedLog.status == 402,
-                                      'bg-amber-100 text-amber-700': $store.logModal.selectedLog.status == 422,
-                                      'bg-red-100 text-red-700': $store.logModal.selectedLog.status >= 500
-                                  }"
-                                  x-text="{
-                                      '200': 'ALL SYSTEMS OK',
-                                      '402': 'AI BALANCE REQUIRED',
-                                      '422': 'BAD IMAGE/REQUEST',
-                                      '500': 'SERVER INTERNAL ERROR',
-                                      '503': 'SYSTEM CONFIG ERROR'
-                                  }[$store.logModal.selectedLog.status] || 'UNEXPECTED ERROR'"></span>
+                            <span
+                                class="text-xs font-mono px-2 py-0.5 rounded bg-gray-100 text-gray-600 border border-gray-200"
+                                x-text="'HTTP ' + $store.logModal.selectedLog.status"></span>
+                            <span class="text-xs font-bold px-2 py-0.5 rounded" :class="{
+                                          'bg-green-100 text-green-700': $store.logModal.selectedLog.status == 200,
+                                          'bg-orange-100 text-orange-700': $store.logModal.selectedLog.status == 402,
+                                          'bg-amber-100 text-amber-700': $store.logModal.selectedLog.status == 422,
+                                          'bg-red-100 text-red-700': $store.logModal.selectedLog.status >= 500
+                                      }" x-text="{
+                                          '200': 'ALL SYSTEMS OK',
+                                          '402': 'AI BALANCE REQUIRED',
+                                          '422': 'BAD IMAGE/REQUEST',
+                                          '500': 'SERVER INTERNAL ERROR',
+                                          '503': 'SYSTEM CONFIG ERROR'
+                                      }[$store.logModal.selectedLog.status] || 'UNEXPECTED ERROR'"></span>
                         </div>
                     </div>
                     <button @click="$store.logModal.open = false"
@@ -177,19 +202,18 @@
                             <span class="w-2 h-2 rounded-full bg-blue-500"></span>
                             App Request Payload (App → Server)
                         </h3>
-                        <pre class="bg-gray-900 text-green-400 p-4 rounded-lg text-xs font-mono overflow-x-auto"
-                            x-text="$store.logModal.selectedLog.request ? JSON.stringify(JSON.parse($store.logModal.selectedLog.request), null, 4) : 'No Data'"></pre>
+                        <pre class="bg-gray-900 text-green-400 p-4 rounded-lg text-xs font-mono overflow-x-auto whitespace-pre-wrap"
+                            x-text="$store.logModal.formatData($store.logModal.selectedLog.request)"></pre>
                     </div>
 
-                    <div
-                        x-show="$store.logModal.selectedLog.request && JSON.parse($store.logModal.selectedLog.request)._internal_ai_logs">
+                    <div x-show="$store.logModal.getInternalLogs()">
                         <h3
                             class="text-sm font-semibold text-gray-900 mb-2 uppercase tracking-wider flex items-center gap-2">
                             <span class="w-2 h-2 rounded-full bg-orange-500 border border-white"></span>
                             Internal AI Workflow (Server ↔ Replicate)
                         </h3>
-                        <pre class="bg-[#1e1e2e] text-orange-200 p-4 rounded-lg text-xs font-mono overflow-x-auto border border-orange-500/20"
-                            x-text="$store.logModal.selectedLog.request ? JSON.stringify(JSON.parse($store.logModal.selectedLog.request)._internal_ai_logs, null, 4) : 'No Data'"></pre>
+                        <pre class="bg-[#1e1e2e] text-orange-200 p-4 rounded-lg text-xs font-mono overflow-x-auto border border-orange-500/20 whitespace-pre-wrap"
+                            x-text="$store.logModal.formatData($store.logModal.getInternalLogs())"></pre>
                     </div>
 
                     <div>
@@ -198,8 +222,8 @@
                             <span class="w-2 h-2 rounded-full bg-green-500"></span>
                             Server Response Payload (Server → App)
                         </h3>
-                        <pre class="bg-gray-900 text-blue-300 p-4 rounded-lg text-xs font-mono overflow-x-auto"
-                            x-text="$store.logModal.selectedLog.response ? ($store.logModal.selectedLog.response.startsWith('{') ? JSON.stringify(JSON.parse($store.logModal.selectedLog.response), null, 4) : $store.logModal.selectedLog.response) : 'No Data'"></pre>
+                        <pre class="bg-gray-900 text-blue-300 p-4 rounded-lg text-xs font-mono overflow-x-auto whitespace-pre-wrap"
+                            x-text="$store.logModal.formatData($store.logModal.selectedLog.response)"></pre>
                     </div>
                 </div>
 
