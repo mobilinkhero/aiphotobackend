@@ -28,6 +28,9 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
     Route::get('/settings/ai', [AdminController::class, 'aiSettings'])->name('admin.settings.ai');
     Route::post('/settings/ai', [AdminController::class, 'updateSettings'])->name('admin.settings.ai.update');
 
+    Route::get('/settings/features', [AdminController::class, 'featuresSettings'])->name('admin.settings.features');
+    Route::post('/settings/features', [AdminController::class, 'updateSettings'])->name('admin.settings.features.update');
+
     // AI Test Page
     Route::get('/ai-test', [AiEnhanceController::class, 'testPage'])->name('admin.ai.test');
     Route::post('/ai-test', [AiEnhanceController::class, 'testRun'])->name('admin.ai.test.run');

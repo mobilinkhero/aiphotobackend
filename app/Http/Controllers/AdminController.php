@@ -23,6 +23,20 @@ class AdminController extends Controller
         'ai_api_key' => ['type' => 'password', 'desc' => 'API Key (Replicate/Fal)', 'group' => 'ai'],
         'ai_provider' => ['type' => 'text', 'desc' => 'Active AI Provider (e.g. replicate)', 'group' => 'ai'],
         'ai_max_concurrent' => ['type' => 'text', 'desc' => 'Max Concurrent Generations', 'group' => 'ai'],
+
+        // Feature Toggles (App UI)
+        'feature_enhance_enabled' => ['type' => 'boolean', 'desc' => 'Enable Photo Enhance', 'group' => 'features'],
+        'feature_enhance_premium' => ['type' => 'boolean', 'desc' => 'Make Photo Enhance Premium', 'group' => 'features'],
+        'feature_restore_enabled' => ['type' => 'boolean', 'desc' => 'Enable Restore Old Photo', 'group' => 'features'],
+        'feature_restore_premium' => ['type' => 'boolean', 'desc' => 'Make Restore Premium', 'group' => 'features'],
+        'feature_face_enabled' => ['type' => 'boolean', 'desc' => 'Enable Face Enhance', 'group' => 'features'],
+        'feature_face_premium' => ['type' => 'boolean', 'desc' => 'Make Face Enhance Premium', 'group' => 'features'],
+        'feature_upscale_enabled' => ['type' => 'boolean', 'desc' => 'Enable Upscale to HD', 'group' => 'features'],
+        'feature_upscale_premium' => ['type' => 'boolean', 'desc' => 'Make Upscale Premium', 'group' => 'features'],
+        'feature_colorize_enabled' => ['type' => 'boolean', 'desc' => 'Enable Colorize Photo', 'group' => 'features'],
+        'feature_colorize_premium' => ['type' => 'boolean', 'desc' => 'Make Colorize Premium', 'group' => 'features'],
+        'feature_background_enabled' => ['type' => 'boolean', 'desc' => 'Enable Background Fix', 'group' => 'features'],
+        'feature_background_premium' => ['type' => 'boolean', 'desc' => 'Make Background Fix Premium', 'group' => 'features'],
     ];
 
     private function syncDefaults()
@@ -62,6 +76,11 @@ class AdminController extends Controller
     public function aiSettings()
     {
         return $this->renderSettings('ai', 'AI Services Configuration', 'Manage your backend AI processing credentials and provider limits.', 'admin.settings.ai.update');
+    }
+
+    public function featuresSettings()
+    {
+        return $this->renderSettings('features', 'App Feature Toggles', 'Instantly hide, show, or pay-wall mobile app features without requiring an app store update.', 'admin.settings.features.update');
     }
 
     /**
