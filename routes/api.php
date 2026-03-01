@@ -25,6 +25,7 @@ Route::middleware(['app.secret'])->group(function () {
             'maintenance_mode',
             'minimum_app_version',
             'app_store_url',
+            'initial_free_coins',
             // Feature flags
             'feature_enhance_enabled',
             'feature_enhance_premium',

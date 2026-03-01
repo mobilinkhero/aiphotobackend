@@ -19,6 +19,7 @@ class AdminController extends Controller
         'maintenance_mode' => ['type' => 'boolean', 'desc' => 'Enable Maintenance Mode (Blocks users)', 'group' => 'system'],
         'minimum_app_version' => ['type' => 'text', 'desc' => 'Minimum forced app version (e.g. 1.0.1)', 'group' => 'system'],
         'app_store_url' => ['type' => 'text', 'desc' => 'App/Play Store URL', 'group' => 'system'],
+        'initial_free_coins' => ['type' => 'number', 'desc' => 'Initial free coins for new users', 'group' => 'system'],
 
         'ai_api_key' => ['type' => 'password', 'desc' => 'API Key (Replicate/Fal)', 'group' => 'ai'],
         'ai_provider' => ['type' => 'text', 'desc' => 'Active AI Provider (e.g. replicate)', 'group' => 'ai'],
