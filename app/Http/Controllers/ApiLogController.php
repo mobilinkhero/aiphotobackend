@@ -22,6 +22,6 @@ class ApiLogController extends Controller
 
     public function show(ApiLog $log)
     {
-        return response()->json($log);
+        return view('admin.apilogs.show', compact('log'));
     }
 }
