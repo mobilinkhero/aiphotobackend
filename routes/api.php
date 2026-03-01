@@ -25,6 +25,19 @@ Route::middleware(['app.secret'])->group(function () {
             'maintenance_mode',
             'minimum_app_version',
             'app_store_url',
+            // Feature flags
+            'feature_enhance_enabled',
+            'feature_enhance_premium',
+            'feature_restore_enabled',
+            'feature_restore_premium',
+            'feature_face_enabled',
+            'feature_face_premium',
+            'feature_upscale_enabled',
+            'feature_upscale_premium',
+            'feature_colorize_enabled',
+            'feature_colorize_premium',
+            'feature_background_enabled',
+            'feature_background_premium',
         ])->get()->pluck('value', 'key');
 
         return response()->json([
