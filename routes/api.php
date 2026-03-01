@@ -40,9 +40,105 @@ Route::middleware(['app.secret'])->group(function () {
             'feature_background_premium',
         ])->get()->pluck('value', 'key');
 
+        $featuresData = [
+            [
+                'id' => 'enhance',
+                'title' => 'Enhance Photo',
+                'description' => 'Auto fix resolution & color',
+                'icon' => 'auto_fix_high_rounded',
+                'color' => '0xFF448AFF', // blueAccent
+                'enabled' => $settings->get('feature_enhance_enabled', '1') == '1',
+                'isPremium' => $settings->get('feature_enhance_premium', '0') == '1',
+                'benefits' => [],
+                'beforeUrl' => 'assets/images/demos/enhance_before.jpg',
+                'afterUrl' => 'assets/images/demos/enhance_after.jpg',
+            ],
+            [
+                'id' => 'restore',
+                'title' => 'Restore Old Photo',
+                'description' => 'Repair scratches & blur',
+                'icon' => 'history_rounded',
+                'color' => '0xFFFFAB40', // orangeAccent
+                'enabled' => $settings->get('feature_restore_enabled', '1') == '1',
+                'isPremium' => $settings->get('feature_restore_premium', '1') == '1',
+                'benefits' => [
+                    'Remove deep scratches & folds',
+                    'Restore faded facial features',
+                    'AI neural grain removal',
+                    'Clean background noise'
+                ],
+                'beforeUrl' => 'assets/images/demos/restore_before.jpg',
+                'afterUrl' => 'assets/images/demos/restore_after.jpg',
+            ],
+            [
+                'id' => 'face',
+                'title' => 'Face Enhance',
+                'description' => 'Perfect facial details',
+                'icon' => 'face_retouching_natural_rounded',
+                'color' => '0xFFFF4081', // pinkAccent
+                'enabled' => $settings->get('feature_face_enabled', '1') == '1',
+                'isPremium' => $settings->get('feature_face_premium', '0') == '1',
+                'benefits' => [],
+                'beforeUrl' => 'assets/images/demos/face_before.jpg',
+                'afterUrl' => 'assets/images/demos/face_after.jpg',
+            ],
+            [
+                'id' => 'upscale',
+                'title' => 'Upscale to HD',
+                'description' => '4x Resolution boost',
+                'icon' => 'high_quality_rounded',
+                'color' => '0xFF69F0AE', // greenAccent
+                'enabled' => $settings->get('feature_upscale_enabled', '1') == '1',
+                'isPremium' => $settings->get('feature_upscale_premium', '1') == '1',
+                'benefits' => [
+                    '4X Detail enhancement',
+                    'Crystal clear 4K output',
+                    'Preserve natural textures',
+                    'Super-resolution AI technology'
+                ],
+                'beforeUrl' => 'assets/images/demos/upscale_before.jpg',
+                'afterUrl' => 'assets/images/demos/upscale_after.jpg',
+            ],
+            [
+                'id' => 'colorize',
+                'title' => 'Colorize Photo',
+                'description' => 'Add life to B&W photos',
+                'icon' => 'palette_rounded',
+                'color' => '0xFF7C4DFF', // deepPurpleAccent
+                'enabled' => $settings->get('feature_colorize_enabled', '1') == '1',
+                'isPremium' => $settings->get('feature_colorize_premium', '0') == '1',
+                'benefits' => [],
+                'beforeUrl' => 'assets/images/demos/colorize_before.jpg',
+                'afterUrl' => 'assets/images/demos/colorize_after.jpg',
+            ],
+            [
+                'id' => 'background',
+                'title' => 'Background Fix',
+                'description' => 'Remove & enhance BG',
+                'icon' => 'image_aspect_ratio_rounded',
+                'color' => '0xFF18FFFF', // cyanAccent
+                'enabled' => $settings->get('feature_background_enabled', '1') == '1',
+                'isPremium' => $settings->get('feature_background_premium', '1') == '1',
+                'benefits' => [
+                    'Smart object-aware removal',
+                    'Natural portrait bokeh',
+                    'One-tap background swap',
+                    'Professional depth of field'
+                ],
+                'beforeUrl' => 'assets/images/demos/background_before.jpg',
+                'afterUrl' => 'assets/images/demos/background_after.jpg',
+            ],
+        ];
+
+        // Filter out features completely disabled on the server side
+        $featuresData = array_values(array_filter($featuresData, function ($f) {
+            return $f['enabled'];
+        }));
+
         return response()->json([
             'success' => true,
             'config' => $settings,
+            'features' => $featuresData,
         ]);
     });
 
