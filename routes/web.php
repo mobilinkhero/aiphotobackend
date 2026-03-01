@@ -17,6 +17,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
 
     Route::get('/enhancements', [AppEnhancementController::class, 'index'])->name('admin.enhancements');
     Route::get('/api-logs', [ApiLogController::class, 'index'])->name('admin.apilogs');
+    Route::get('/api-logs/{log}', [ApiLogController::class, 'show'])->name('admin.apilogs.show');
 
     // Settings Pages
     Route::get('/settings/system', [AdminController::class, 'systemSettings'])->name('admin.settings.system');
